@@ -220,34 +220,38 @@ jobs:
                   error_notification(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'), 'confused', comment_text, e)
                   exit(0)
               end
+
+              
+
+              #
+              # Gove over thanks for playing.
+              # ---------------------------------------
+              if game.over?
+                # add label = end
+                @octokit.add_labels_to_an_issue(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'), ["game-over"])
+                game_stats = { moves: 0, players: [], start_time: nil, end_time: nil }
+                issues&.each do |issue|
+                  break if issue.title.start_with? 'chess|new'
+                  if game_stats[:moves] == 0
+                    game_stats[:end_time] = issue.created_at
+                  end
+                  game_stats[:moves] += 1
+                  if ENV.fetch('REPOSITORY') == 'timburgan/timburgan'
+                    game_stats[:players].push "@#{issue.user.login}"
+                  else
+                    game_stats[:players].push "#{issue.user.login}"
+                  end
+                  game_stats[:start_time] = issue.created_at
+                end
+                game_stats[:players] = game_stats[:players]&.uniq
+                hours = (game_stats[:start_time] - game_stats[:end_time]).to_i.abs / 3600
+                @octokit.add_comment(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'), "That's game over! Thank you for playing that chess game. That came had #{game_stats[:moves]} moves, #{game_stats[:players]&.length} players, and went for #{hours} hours. Lets play again at https://github.com/timburgan.\n\nPlayers that game: #{game_stats[:players].join(', ')}")
+              end
           end
 
 
 
-          @octokit.add_comment(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'), "@#{ENV.fetch('EVENT_USER_LOGIN')} Done. View back at https://github.com/timburgan\n\nAsk a friend to take the next move: [Share on Twitter...](https://twitter.com/share?text=I'm+playing+chess+on+a+GitHub+Profile+Readme!+I+just+moved.+You+have+the+next+move+at+https://github.com/timburgan)")
-
-          if true #game.over?
-            # add label = end
-            @octokit.add_labels_to_an_issue(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'), ["game-over"])
-            game_stats = { moves: 0, players: [], start_time: nil, end_time: nil }
-            issues&.each do |issue|
-              break if issue.title.start_with? 'chess|new'
-              if game_stats[:moves] == 0
-                game_stats[:end_time] = issue.created_at
-              end
-              game_stats[:moves] += 1
-              if ENV.fetch('REPOSITORY') == 'timburgan/timburgan'
-                game_stats[:players].push "@#{issue.user.login}"
-              else
-                game_stats[:players].push "#{issue.user.login}"
-              end
-              game_stats[:start_time] = issue.created_at
-            end
-            game_stats[:players] = game_stats[:players]&.uniq
-            hours = (game_stats[:start_time] - game_stats[:end_time]).to_i.abs / 3600
-            @octokit.add_comment(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'), "That's game over! Thank you for playing that chess game. That came had #{game_stats[:moves]} moves, #{game_stats[:players]&.length} players, and went for #{hours} hours. Lets play again at https://github.com/timburgan.\n\nPlayers that game: #{game_stats[:players].join(', ')}")
-          end
-          
+          @octokit.add_comment(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'), "@#{ENV.fetch('EVENT_USER_LOGIN')} Done. View back at https://github.com/timburgan\n\nAsk a friend to take the next move: [Share on Twitter...](https://twitter.com/share?text=I'm+playing+chess+on+a+GitHub+Profile+Readme!+I+just+moved.+You+have+the+next+move+at+https://github.com/timburgan)")          
           @octokit.close_issue(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'))
 
 
