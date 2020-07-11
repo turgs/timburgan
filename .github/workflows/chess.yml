@@ -227,7 +227,7 @@ jobs:
 
           @octokit.add_comment(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'), "@#{ENV.fetch('EVENT_USER_LOGIN')} Done. View back at https://github.com/timburgan\n\nAsk a friend to take the next move: [Share on Twitter...](https://twitter.com/share?text=I'm+playing+chess+on+a+GitHub+Profile+Readme!+I+just+moved.+You+have+the+next+move+at+https://github.com/timburgan)")
 
-          if game.over?
+          if true #game.over?
             # add label = end
             @octokit.add_labels_to_an_issue(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'), ["game-over"])
             game_stats = { moves: 0, players: [], start_time: nil, end_time: nil }
@@ -407,6 +407,8 @@ jobs:
 
 
           new_readme.concat <<~HTML
+
+            Ask a friend to take the next move: [Share on Twitter...](https://twitter.com/share?text=I'm+playing+chess+on+a+GitHub+Profile+Readme!+Can+you+please+take+the+next+move+at+https://github.com/timburgan)
 
             **How this works**
 
