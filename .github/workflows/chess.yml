@@ -227,23 +227,27 @@ jobs:
 
           @octokit.add_comment(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'), "@#{ENV.fetch('EVENT_USER_LOGIN')} Done. View back at https://github.com/timburgan\n\nAsk a friend to take the next move: [Share on Twitter...](https://twitter.com/share?text=I'm+playing+chess+on+a+GitHub+Profile+Readme!+I+just+moved.+You+have+the+next+move+at+https://github.com/timburgan)")
 
-          # if game.over?
-          #   # add label = end
-          #   @octokit.add_labels_to_an_issue(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'), ["game-over"])
-          #   game_stats = { moves: 0, players: [], start_time: nil, end_time: nil }
-          #   issues&.each do |issue|
-          #     break if issue.title.start_with? 'chess|new'
-          #     if game_stats[:moves] == 0
-          #       game_stats[:end_time] = DateTime.strptime(issue.created_at, '%Y-%m-%dT%H:%M:%SZ')
-          #     end
-          #     game_stats[:moves] += 1
-          #     game_stats[:players].push "@#{issue.user.login}"
-          #     game_stats[:start_time] = DateTime.strptime(issue.created_at, '%Y-%m-%dT%H:%M:%SZ')
-          #   end
-          #   game_stats[:players] = game_stats[:players]&.uniq
-          #   hours = (game_stats[:start_time] - game_stats[:end_time]) * 24
-          #   @octokit.add_comment(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'), "Thank you for playing that chess game. That came had #{game_stats[:moves]} moves, #{game_stats[:players]&.length} players, and went for #{hours} hours. Lets play again at https://github.com/timburgan.\n\nPlayers that game: #{game_stats[:players].join(', ')}"
-          # end
+          if game.over?
+            # add label = end
+            @octokit.add_labels_to_an_issue(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'), ["game-over"])
+            game_stats = { moves: 0, players: [], start_time: nil, end_time: nil }
+            issues&.each do |issue|
+              break if issue.title.start_with? 'chess|new'
+              if game_stats[:moves] == 0
+                game_stats[:end_time] = DateTime.strptime(issue.created_at, '%Y-%m-%dT%H:%M:%SZ')
+              end
+              game_stats[:moves] += 1
+              if ENV.fetch('REPOSITORY') == 'timburgan/timburgan'
+                game_stats[:players].push "@#{issue.user.login}"
+              else
+                game_stats[:players].push "#{issue.user.login}"
+              end
+              game_stats[:start_time] = DateTime.strptime(issue.created_at, '%Y-%m-%dT%H:%M:%SZ')
+            end
+            game_stats[:players] = game_stats[:players]&.uniq
+            hours = (game_stats[:start_time] - game_stats[:end_time]) * 24
+            @octokit.add_comment(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'), "Thank you for playing that chess game. That came had #{game_stats[:moves]} moves, #{game_stats[:players]&.length} players, and went for #{hours} hours. Lets play again at https://github.com/timburgan.\n\nPlayers that game: #{game_stats[:players].join(', ')}"
+          end
           
           @octokit.close_issue(ENV.fetch('REPOSITORY'), ENV.fetch('EVENT_ISSUE_NUMBER'))
 
